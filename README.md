@@ -1,8 +1,9 @@
-# React + Vite
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbol+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+aspect-ratio: 1;
+scrollbar-color: transparent transparent;
+flex-shrink: 0;
 
-Currently, two official plugins are available:
+navigator.geolocation.getCurrentPosition
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+https://www.weatherapi.com

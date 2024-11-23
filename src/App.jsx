@@ -1,70 +1,89 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import SearchSection from "./components/SearchSection";
+import CurrentWeather from "./components/CurrentWeather";
+import HourlyWeatherItem from "./components/HourlyWeatherItem";
+import NoResultsDiv from "./components/NoResultsDiv";
+import { weatherCodes } from "./constants";
 
 const App = () => {
+  const API_KEY = import.meta.env.VITE_API_KEY;
+
+  const [currentWeather, setCurrentWeather] = useState({});
+  const [hourlyForecasts, setHourlyForecasts] = useState([]);
+  const [hasNoResult, setHasNoResult] = useState(false);
+
+  const searchInputRef = useRef(null);
+  const filterHourlyForecast = (hourlyData) => {
+    const currentHour = new Date().setMinutes(0, 0, 0);
+    const next24Hours = currentHour + 24 * 60 * 60 * 1000;
+
+    const next24HoursData = hourlyData.filter(({ time }) => {
+      const forecastTime = new Date(time).getTime();
+      return forecastTime >= currentHour && forecastTime < next24Hours;
+    });
+
+    setHourlyForecasts(next24HoursData);
+  };
+  const getWeatherData = async (API_URL) => {
+    setHasNoResult(false);
+    window.innerWidth <= 768 && searchInputRef.current.focus();
+
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+
+      const temperature = Math.floor(data.current.temp_c);
+      const description = data.current.condition.text;
+      const weatherIcon = Object.keys(weatherCodes).find((icon) =>
+        weatherCodes[icon].includes(data.current.condition.code)
+      );
+
+      setCurrentWeather({ temperature, description, weatherIcon });
+      const combinedHourlyData = [
+        ...data.forecast.forecastday[0].hour,
+        ...data.forecast.forecastday[1].hour,
+      ];
+      searchInputRef.current.value = data.location.name;
+      filterHourlyForecast(combinedHourlyData);
+    } catch (error) {
+      setHasNoResult(true);
+    }
+  };
+
+  useEffect(() => {
+    const defaultCity = "Los Angeles";
+    const API_URL = `http://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${defaultCity}&days=2`;
+    getWeatherData(API_URL);
+  }, []);
+
   return (
     <div className="container">
-      {/* search section */}
-      <div className="search-section">
-        <form action="#" className="search-form">
-          <span className="material-symbols-rounded">search</span>
-          <input
-            type="search"
-            placeholder="Enter city name"
-            className="search-input"
-            required
-          />
-        </form>
-        <button className="location-button">
-          <span className="material-symbols-rounded">my_location</span>
-        </button>
-      </div>
+      <SearchSection
+        getWeatherData={getWeatherData}
+        searchInputRef={searchInputRef}
+      />
+      {hasNoResult ? (
+        <NoResultsDiv />
+      ) : (
+        <div className="weather-section">
+          <CurrentWeather currentWeather={currentWeather} />
 
-      {/* weather section */}
-      <div className="weather-section">
-        <div className="current-weather">
-          <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-          <h2 className="temperature">
-            20 <span>°C</span>
-          </h2>
-          <p className="description">Partly Cloudy</p>
+          {/* hourly forecast */}
+          <div className="hourly-forecast">
+            <ul className="weather-list">
+              {hourlyForecasts.map((hourlyWeather) => (
+                <HourlyWeatherItem
+                  key={hourlyWeather.time_epoch}
+                  hourlyWeather={hourlyWeather}
+                />
+              ))}
+            </ul>
+          </div>
         </div>
-
-        {/* hourly forecast */}
-        <div className="hourly-forecast">
-          <ul className="weather-list">
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-            <li className="weather-item">
-              <p className="time">00:00</p>
-              <img src="src/icons/clouds.svg" alt="" className="weather-icon" />
-              <p className="temperature">20°</p>
-            </li>
-          </ul>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
