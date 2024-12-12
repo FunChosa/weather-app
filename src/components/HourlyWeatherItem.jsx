@@ -7,14 +7,11 @@ const HourlyWeatherItem = ({ hourlyWeather }) => {
   const weatherIcon = Object.keys(weatherCodes).find((icon) =>
     weatherCodes[icon].includes(hourlyWeather.condition.code)
   );
+  const image = `src/icons/${weatherIcon}.svg`;
   return (
     <li className="weather-item">
       <p className="time">{time}</p>
-      <img
-        src={`/src/icons/${weatherIcon}.svg`}
-        alt=""
-        className="weather-icon"
-      />
+      <img src={image} alt="icon weather" className="weather-icon" />
       <p className="temperature">{temperature}°</p>
     </li>
   );
